@@ -307,43 +307,44 @@
 		self.initSwipe = function() {
 			var width = self.$slides.width();
 
-			//  We don't want to have a tactile swipe in the slider
-			//  in the fade animation, as it can cause some problems
-			//  with layout, so we'll just disable it.
-			if(self.options.animation !== 'fade') {
+			//  Don't make any layout changes if animation = fade
+			self.$container.on({
 
-				self.$container.on({
+				dragstart: function(e) {
+					//  If a dragstart event has already been initiated, stop it.
+					//  This prevents the 'ghost image' drag issue
+					return !!e.preventDefault();
+				},
 
-					movestart: function(e) {
-						//  If the movestart heads off in a upwards or downwards
-						//  direction, prevent it so that the browser scrolls normally.
-						if((e.distX > e.distY && e.distX < -e.distY) || (e.distX < e.distY && e.distX > -e.distY)) {
-							return !!e.preventDefault();
-						}
-
-						self.$container.css('position', 'relative');
-					},
-
-					move: function(e) {
-						self.$container.css('left', -(100 * self.current) + (100 * e.distX / width) + '%');
-					},
-
-					moveend: function(e) {
-						// Check if swiped distance is greater than threshold.
-						// If yes slide to next/prev slide. If not animate to
-						// starting point.
-
-						if((Math.abs(e.distX) / width) > self.options.swipeThreshold) {
-
-							self[e.distX < 0 ? 'next' : 'prev']();
-						}
-						else {
-
-							self.$container.animate({left: -(100 * self.current) + '%' }, self.options.speed / 2 );
-						}
+				movestart: function(e) {
+					//  If the movestart heads off in a upwards or downwards
+					//  direction, prevent it so that the browser scrolls normally.
+					if((e.distX > e.distY && e.distX < -e.distY) || (e.distX < e.distY && e.distX > -e.distY)) {
+						return !!e.preventDefault();
 					}
-				});
-			}
+
+					if(self.options.animation !== 'fade') self.$container.css('position', 'relative');
+				},
+
+				move: function(e) {
+					if(self.options.animation !== 'fade') self.$container.css('left', -(100 * self.current) + (100 * e.distX / width) + '%');
+				},
+
+				moveend: function(e) {
+					// Check if swiped distance is greater than threshold.
+					// If yes slide to next/prev slide. If not animate to
+					// starting point.
+
+					if((Math.abs(e.distX) / width) > self.options.swipeThreshold) {
+
+						self[e.distX < 0 ? 'next' : 'prev']();
+					}
+					else {
+
+						if(self.options.animation !== 'fade') self.$container.animate({left: -(100 * self.current) + '%' }, self.options.speed / 2 );
+					}
+				}
+			});
 		};
 
 		//  Infinite scrolling is a massive pain in the arse
